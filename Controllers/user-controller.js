@@ -3,9 +3,9 @@ const db = require("../util/connectMySQL");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const QueryForUser = (userSQLQuery, email) => {
+const QueryDatabse = (SQLQuery, columnValue) => {
   return new Promise((resolve, reject) => {
-    db.query(userSQLQuery, [email], (err, result) => {
+    db.query(SQLQuery, [columnValue], (err, result) => {
       if (err) {
         return reject(err);
       }
@@ -28,15 +28,8 @@ const AddUser = (addSQLQuery, userObject) => {
 
 const CheckForUser = async (email) => {
   let userSearchQuery = "SELECT * FROM users WHERE Email = ?";
-  let user;
-  try {
-    user = await QueryForUser(userSearchQuery, email);
-  } catch (err) {
-    if (err) {
-      const error = new HttpError("A problem occurred, try again later", 500);
-      next(error);
-    }
-  }
+
+  let user = await QueryDatabse(userSearchQuery, email);
 
   return user;
 };
@@ -58,12 +51,37 @@ const CreateToken = (userID, email) => {
   return token;
 };
 
+const SearchUserAppointments = async (req, res, next) => {
+  //needs to be authorized and checked that the userID matches the logged in user
+  const { userID } = req.body;
+  // const { userId: currentID } = req.userData; (will come back to this for authorization)
+
+  const sqlQuery =
+    "SELECT Time, Date, Location FROM tutoring_requests WHERE User_ID = ?";
+  let appointments;
+  try {
+    appointments = await QueryDatabse(sqlQuery, userID);
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.status(201).json({ apps: appointments }).send();
+
+  //console.log(appointments);
+};
+
 const Login = async (req, res, next) => {
   const { email, password } = req.body;
   let user;
   let checkPassword;
 
-  user = await CheckForUser(email);
+  try {
+    user = await CheckForUser(email);
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
   if (user.length == 0) {
     const error = new HttpError("User doesn't exist, please sign up", 422);
     return next(error);
@@ -142,3 +160,4 @@ const Register = async (req, res, next) => {
 
 exports.Register = Register;
 exports.Login = Login;
+exports.SearchUserAppointments = SearchUserAppointments;
