@@ -3,19 +3,10 @@ const db = require("../util/connectMySQL");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const QueryDatabse = (SQLQuery, columnValue) => {
-  return new Promise((resolve, reject) => {
-    db.query(SQLQuery, [columnValue], (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      // console.log("query result: ", result);
-      return resolve(result);
-    });
-  });
-};
+const QueryDB = require("../util/QueryDatabase");
 
-const AddUser = (addSQLQuery, userObject) => {
+const AddUser = (userObject) => {
+  let addSQLQuery = "INSERT INTO users SET ?";
   return new Promise((resolve, reject) => {
     db.query(addSQLQuery, userObject, (err, result) => {
       if (err) {
@@ -29,7 +20,7 @@ const AddUser = (addSQLQuery, userObject) => {
 const CheckForUser = async (email) => {
   let userSearchQuery = "SELECT * FROM users WHERE Email = ?";
 
-  let user = await QueryDatabse(userSearchQuery, email);
+  let user = await QueryDB.QueryDatabse(userSearchQuery, email);
 
   return user;
 };
@@ -49,26 +40,6 @@ const CreateToken = (userID, email) => {
     return next(error);
   }
   return token;
-};
-
-const SearchUserAppointments = async (req, res, next) => {
-  //needs to be authorized and checked that the userID matches the logged in user
-  const { userID } = req.body;
-  // const { userId: currentID } = req.userData; (will come back to this for authorization)
-
-  const sqlQuery =
-    "SELECT Time, Date, Location FROM tutoring_requests WHERE User_ID = ?";
-  let appointments;
-  try {
-    appointments = await QueryDatabse(sqlQuery, userID);
-  } catch (err) {
-    console.log(err);
-    return next(err);
-  }
-
-  res.status(201).json({ apps: appointments }).send();
-
-  //console.log(appointments);
 };
 
 const Login = async (req, res, next) => {
@@ -138,11 +109,10 @@ const Register = async (req, res, next) => {
     Password: hashedPasword,
   };
 
-  let sql = "INSERT INTO users SET ?";
   let insertResult;
 
   try {
-    insertResult = await AddUser(sql, newUserInfo);
+    insertResult = await AddUser(newUserInfo);
   } catch (err) {
     if (err) {
       console.log(err);
@@ -160,4 +130,3 @@ const Register = async (req, res, next) => {
 
 exports.Register = Register;
 exports.Login = Login;
-exports.SearchUserAppointments = SearchUserAppointments;

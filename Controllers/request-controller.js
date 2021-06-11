@@ -2,14 +2,35 @@ const HttpError = require("../http-error");
 const Request = require("../RequestSchema");
 const db = require("../util/connectMySQL");
 
+const QueryDB = require("../util/QueryDatabase");
+
+const SearchUserRequests = async (req, res, next) => {
+  //needs to be authorized and checked that the userID matches the logged in user
+  const { userID } = req.params;
+  console.log(userID);
+  // const { userId: currentID } = req.userData; (will come back to this for authorization)
+
+  const sqlQuery =
+    "SELECT Request_ID, Time, Date, Location FROM tutoring_requests WHERE User_ID = ?";
+  let appointments;
+  try {
+    appointments = await QueryDB.QueryDatabse(sqlQuery, userID);
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+  //console.log(appointments);
+  res.status(201).json({ apps: appointments }).send();
+};
+
 const AvailableTimes = async (req, res, next) => {
   const { date } = req.body;
 
   const initialTimes = initiateTimes(date);
   const sqlQuery = "SELECT Time FROM tutoring_requests WHERE Date = ?";
-  let busyTimes;
+  let SQLData;
   try {
-    busyTimes = await QueryForTimes(sqlQuery, date);
+    SQLData = await QueryDB.QueryDatabse(sqlQuery, date);
   } catch (err) {
     console.log(err);
     /*const error = new HttpError(
@@ -18,11 +39,10 @@ const AvailableTimes = async (req, res, next) => {
     );*/
     return next(error);
   }
-  console.log(busyTimes);
+
   let resultingTimes = initialTimes.filter((time) => {
-    for (let i = 0; i < busyTimes.length; i++) {
-      console.log(time);
-      if (busyTimes[i]["Time"] == time) {
+    for (let i = 0; i < SQLData.length; i++) {
+      if (SQLData[i]["Time"] == time) {
         return false;
       }
     }
@@ -30,17 +50,6 @@ const AvailableTimes = async (req, res, next) => {
   });
 
   res.status(201).json({ times: resultingTimes }).send();
-};
-
-const QueryForTimes = (sqlQuery, date) => {
-  return new Promise((resolve, reject) => {
-    db.query(sqlQuery, [date], (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve(result);
-    });
-  });
 };
 
 const initiateTimes = (date) => {
@@ -67,6 +76,18 @@ const initiateTimes = (date) => {
   return Times[dayCategory];
 };
 
+const cancelRequest = async (req, res, next) => {
+  const { reqID } = req.params;
+  let sql = "DELETE FROM tutoring_requests WHERE Request_ID = ?";
+  try {
+    await QueryDB.QueryDatabse(sql, reqID);
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+  res.status(201).json({ message: "Tutoring appointment canceled" }).send();
+};
+
 const newRequest = async (req, res, next) => {
   const { userID, time, date, subject_ID, location, topics } = req.body;
 
@@ -91,3 +112,5 @@ const newRequest = async (req, res, next) => {
 
 exports.newRequest = newRequest;
 exports.AvailableTimes = AvailableTimes;
+exports.SearchUserRequests = SearchUserRequests;
+exports.cancelRequest = cancelRequest;

@@ -8,6 +8,9 @@ const router = express.Router();
 
 router.get("/", requestController.AvailableTimes);
 
+router.get("/user/:userID", requestController.SearchUserRequests);
+router.get("/user/:reqID", requestController.cancelRequest);
+
 router.post("/", requestController.newRequest);
 
 module.exports = router;
