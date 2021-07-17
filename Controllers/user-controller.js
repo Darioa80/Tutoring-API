@@ -60,20 +60,25 @@ const Login = async (req, res, next) => {
   console.log("Logging in user: ", user);
   try {
     checkPassword = await bcrypt.compare(password, user[0].Password);
+    console.log(checkPassword);
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong, try again later", 422);
     return next(error);
   }
+  if (checkPassword) {
+    let token = CreateToken(user.User_ID, email);
 
-  let token = CreateToken(user.User_ID, email);
-
-  res.status(201).json({
-    userID: user[0].User_ID,
-    firstName: user[0].First_Name,
-    email: user[0].Email,
-    token,
-  });
+    res.status(201).json({
+      userID: user[0].User_ID,
+      firstName: user[0].First_Name,
+      email: user[0].Email,
+      token,
+    });
+  } else {
+    const error = new HttpError("Incorrect Password, please try again", 403);
+    return next(error);
+  }
 };
 
 const Register = async (req, res, next) => {

@@ -20,7 +20,7 @@ const app = express();
 
 app.use(bodyParser.json());
 
-/*app.use((req, res, next) => {
+app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*"); //opens up this domain to be access from other domains (CORS error)
   res.setHeader(
     "Access-Control-Allow-Headers",
@@ -28,7 +28,7 @@ app.use(bodyParser.json());
   );
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE"); //Which Http methods to be usedfrom the front end
   next();
-});*/
+});
 
 app.use("/request/", requestRoutes);
 app.use("/user/", userRoutes);
@@ -41,14 +41,19 @@ app.use((req, res, next) => {
 
 app.use((error, req, res, next) => {
   //recognize this as an error handlding middleware function and will only be executed
+  console.log(error);
   if (res.headerSent) {
     //check if a header has already been sent in other middleware function
+    console.log("what's next?");
     return next(error);
   } //where errors are thrown in other middleware functions
-  res.status(error.code || 500);
-  res.json({ message: error.message || "An unknown error ocurred" });
+  console.log("should send custom error");
+  res
+    .status(error.code || 500)
+    .json({ message: error.message || "An unknown error ocurred" });
+  //res.json({ message: error.message || "An unknown error ocurred" });
 });
 
-app.listen("3000", () => {
-  console.log("Hi, server 3000");
+app.listen("8080", () => {
+  console.log("Hi, server 8080");
 });
