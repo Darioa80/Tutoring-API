@@ -52,6 +52,28 @@ const AvailableTimes = async (req, res, next) => {
   res.status(201).json({ times: resultingTimes }).send();
 };
 
+const AvailableSubjects = async (req, res, next) => {
+  const sqlQuery = "SELECT Subject_Name FROM subjects";
+  let SQLData;
+  let subjectArray = [];
+  try {
+    SQLData = await QueryDB.QueryColumn(sqlQuery);
+  } catch (err) {
+    console.log(err);
+    /*const error = new HttpError(
+      "Something went wrong, please try again later",
+      500
+    );*/
+    return next(error);
+  }
+
+  for (let i = 0; i < SQLData.length; i++) {
+    subjectArray.push(SQLData[i]["Subject_Name"]);
+  }
+
+  res.status(201).json({ subjects: subjectArray }).send();
+};
+
 const initiateTimes = (date) => {
   const Times = {
     weekend: [
@@ -112,5 +134,6 @@ const newRequest = async (req, res, next) => {
 
 exports.newRequest = newRequest;
 exports.AvailableTimes = AvailableTimes;
+exports.AvailableSubjects = AvailableSubjects;
 exports.SearchUserRequests = SearchUserRequests;
 exports.cancelRequest = cancelRequest;
