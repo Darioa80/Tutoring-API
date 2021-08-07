@@ -2,6 +2,8 @@ const HttpError = require("../http-error");
 const Request = require("../RequestSchema");
 const db = require("../util/connectMySQL");
 
+const moment = require("moment");
+
 const QueryDB = require("../util/QueryDatabase");
 
 const SearchUserRequests = async (req, res, next) => {
@@ -24,9 +26,12 @@ const SearchUserRequests = async (req, res, next) => {
 };
 
 const AvailableTimes = async (req, res, next) => {
+  console.log("initial route:");
   const { date } = req.body;
+  const weekDayNum = moment(date).weekday();
+  console.log(date);
 
-  const initialTimes = initiateTimes(date);
+  const initialTimes = initiateTimes(weekDayNum);
   const sqlQuery = "SELECT Time FROM tutoring_requests WHERE Date = ?";
   let SQLData;
   try {
@@ -74,7 +79,7 @@ const AvailableSubjects = async (req, res, next) => {
   res.status(201).json({ subjects: subjectArray }).send();
 };
 
-const initiateTimes = (date) => {
+const initiateTimes = (weekDayNum) => {
   const Times = {
     weekend: [
       "12:00:00",
@@ -88,9 +93,8 @@ const initiateTimes = (date) => {
     weekday: ["18:00:00", "19:00:00", "20:00:00"],
   };
 
-  const numDay = new Date().getDay(date);
   let dayCategory;
-  if (numDay == 0 || numDay == 6) {
+  if (weekDayNum == 0 || weekDayNum == 6) {
     dayCategory = "weekend";
   } else {
     dayCategory = "weekday";

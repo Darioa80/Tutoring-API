@@ -6,7 +6,7 @@ const router = express.Router();
 
 //router.use(CheckAuth);
 
-router.get("/", requestController.AvailableTimes);
+router.post("/times", requestController.AvailableTimes);
 router.get("/subjects", requestController.AvailableSubjects);
 router.get("/user/:userID", requestController.SearchUserRequests);
 router.get("/user/:reqID", requestController.cancelRequest);
