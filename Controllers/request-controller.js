@@ -9,14 +9,14 @@ const QueryDB = require("../util/QueryDatabase");
 const SearchUserRequests = async (req, res, next) => {
   //needs to be authorized and checked that the userID matches the logged in user
   const { userID } = req.params;
-  console.log(userID);
+
   // const { userId: currentID } = req.userData; (will come back to this for authorization)
 
   const sqlQuery =
     "SELECT Request_ID, Time, Date, Location FROM tutoring_requests WHERE User_ID = ?";
   let appointments;
   try {
-    appointments = await QueryDB.QueryDatabse(sqlQuery, userID);
+    appointments = await QueryDB.QueryDatbaseRow(sqlQuery, userID);
   } catch (err) {
     console.log(err);
     return next(err);
@@ -35,7 +35,7 @@ const AvailableTimes = async (req, res, next) => {
   const sqlQuery = "SELECT Time FROM tutoring_requests WHERE Date = ?";
   let SQLData;
   try {
-    SQLData = await QueryDB.QueryDatabse(sqlQuery, date);
+    SQLData = await QueryDB.QueryDatbaseRow(sqlQuery, date);
   } catch (err) {
     console.log(err);
     /*const error = new HttpError(
@@ -58,11 +58,12 @@ const AvailableTimes = async (req, res, next) => {
 };
 
 const AvailableSubjects = async (req, res, next) => {
-  const sqlQuery = "SELECT Subject_Name FROM subjects";
+  const sqlQuery = "SELECT Subject_ID, Subject_Name, Rate FROM subjects";
   let SQLData;
-  let subjectArray = [];
+
   try {
     SQLData = await QueryDB.QueryColumn(sqlQuery);
+    console.log(SQLData);
   } catch (err) {
     console.log(err);
     /*const error = new HttpError(
@@ -71,12 +72,15 @@ const AvailableSubjects = async (req, res, next) => {
     );*/
     return next(error);
   }
-
+  let returnNameObject = {};
+  let returnRateObject = {};
   for (let i = 0; i < SQLData.length; i++) {
-    subjectArray.push(SQLData[i]["Subject_Name"]);
+    let currentElement = SQLData[i];
+    returnNameObject[currentElement["Subject_ID"]] =
+      currentElement["Subject_Name"];
+    returnRateObject[currentElement["Subject_ID"]] = currentElement["Rate"];
   }
-
-  res.status(201).json({ subjects: subjectArray }).send();
+  res.status(201).json([returnNameObject, returnRateObject]).send();
 };
 
 const initiateTimes = (weekDayNum) => {
@@ -106,7 +110,7 @@ const cancelRequest = async (req, res, next) => {
   const { reqID } = req.params;
   let sql = "DELETE FROM tutoring_requests WHERE Request_ID = ?";
   try {
-    await QueryDB.QueryDatabse(sql, reqID);
+    await QueryDB.QueryDatbaseRow(sql, reqID);
   } catch (err) {
     console.log(err);
     return next(err);

@@ -20,7 +20,7 @@ const AddUser = (userObject) => {
 const CheckForUser = async (email) => {
   let userSearchQuery = "SELECT * FROM users WHERE Email = ?";
 
-  let user = await QueryDB.QueryDatabse(userSearchQuery, email);
+  let user = await QueryDB.QueryDatabaseRow(userSearchQuery, email);
 
   return user;
 };
@@ -60,7 +60,6 @@ const Login = async (req, res, next) => {
   console.log("Logging in user: ", user);
   try {
     checkPassword = await bcrypt.compare(password, user[0].Password);
-    console.log(checkPassword);
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong, try again later", 422);

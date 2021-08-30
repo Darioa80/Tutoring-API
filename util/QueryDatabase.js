@@ -1,6 +1,21 @@
 const db = require("../util/connectMySQL");
 
-const QueryDatabse = (SQLQuery, columnValue) => {
+//QueryDatabase => retreives the entire database
+const QueryWholeDB = (dbName) => {
+  const sqlQuery = "SELECT * FROM ";
+
+  return new Promise((resolve, reject) => {
+    db.query(sqlQuery + dbName, (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+
+      return resolve(result);
+    });
+  });
+};
+
+const QueryDatabaseRow = (SQLQuery, columnValue) => {
   return new Promise((resolve, reject) => {
     db.query(SQLQuery, [columnValue], (err, result) => {
       if (err) {
@@ -24,5 +39,6 @@ const QueryColumn = (SQLQuery) => {
   });
 };
 
-exports.QueryDatabse = QueryDatabse;
+exports.QueryWholeDB = QueryWholeDB;
+exports.QueryDatabaseRow = QueryDatabaseRow;
 exports.QueryColumn = QueryColumn;

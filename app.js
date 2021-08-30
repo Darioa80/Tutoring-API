@@ -5,7 +5,7 @@ const Request = require("./RequestSchema");
 const HttpError = require("./http-error");
 const userRoutes = require("./Routes/user-routes");
 const requestRoutes = require("./Routes/request-routes");
-
+const subjectsRoutes = require("./Routes/subject-routes");
 const db = require("./util/connectMySQL");
 //Create connection
 
@@ -31,6 +31,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/request/", requestRoutes);
+app.use("/subjects/", subjectsRoutes);
 app.use("/user/", userRoutes);
 
 app.use((req, res, next) => {
