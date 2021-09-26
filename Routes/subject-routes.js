@@ -6,5 +6,5 @@ const subjectsController = require("../Controllers/subjects-controller");
 
 const router = express.Router();
 router.get("/subjects", subjectsController.getAllSubjects);
-
+router.get("/topics", subjectsController.getAllTopics);
 module.exports = router;

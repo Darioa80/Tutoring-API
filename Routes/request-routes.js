@@ -9,9 +9,12 @@ const router = express.Router();
 router.post("/times", requestController.AvailableTimes);
 router.get("/subjects", requestController.AvailableSubjects);
 
-router.get("/user/:userID", requestController.SearchUserRequests);
-router.get("/user/:reqID", requestController.cancelRequest);
+//authenticated routes
+router.use(CheckAuth.CheckAuth);
 
 router.post("/", requestController.newRequest);
+router.get("/user/:userID", requestController.SearchUserRequests);
+router.delete("/:reqID", requestController.cancelRequest);
+router.patch("/:reqID", requestController.EditRequest);
 
 module.exports = router;

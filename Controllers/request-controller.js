@@ -13,29 +13,36 @@ const SearchUserRequests = async (req, res, next) => {
   // const { userId: currentID } = req.userData; (will come back to this for authorization)
 
   const sqlQuery =
-    "SELECT Request_ID, Time, Date, Location FROM tutoring_requests WHERE User_ID = ?";
+    "SELECT Subject_ID, Time, Date, Location FROM tutoring_requests WHERE User_ID = ?";
   let appointments;
   try {
-    appointments = await QueryDB.QueryDatbaseRow(sqlQuery, userID);
+    // appointments = await QueryDB.QueryDatabaseRow(sqlQuery, userID);
+    appointments = await QueryDB.JoinColumn(
+      "tutoring_requests",
+      "Subject_ID",
+      "subjects",
+      "Subject_ID",
+      "Subject_Name",
+      userID
+    );
   } catch (err) {
     console.log(err);
     return next(err);
   }
-  //console.log(appointments);
+
   res.status(201).json({ apps: appointments }).send();
 };
 
 const AvailableTimes = async (req, res, next) => {
-  console.log("initial route:");
   const { date } = req.body;
   const weekDayNum = moment(date).weekday();
-  console.log(date);
-
+  console.log(weekDayNum);
+  let parsed_date = date.split("T")[0];
   const initialTimes = initiateTimes(weekDayNum);
   const sqlQuery = "SELECT Time FROM tutoring_requests WHERE Date = ?";
   let SQLData;
   try {
-    SQLData = await QueryDB.QueryDatbaseRow(sqlQuery, date);
+    SQLData = await QueryDB.QueryDatabaseRow(sqlQuery, parsed_date);
   } catch (err) {
     console.log(err);
     /*const error = new HttpError(
@@ -44,7 +51,7 @@ const AvailableTimes = async (req, res, next) => {
     );*/
     return next(error);
   }
-
+  console.log(SQLData);
   let resultingTimes = initialTimes.filter((time) => {
     for (let i = 0; i < SQLData.length; i++) {
       if (SQLData[i]["Time"] == time) {
@@ -63,7 +70,6 @@ const AvailableSubjects = async (req, res, next) => {
 
   try {
     SQLData = await QueryDB.QueryColumn(sqlQuery);
-    console.log(SQLData);
   } catch (err) {
     console.log(err);
     /*const error = new HttpError(
@@ -110,7 +116,7 @@ const cancelRequest = async (req, res, next) => {
   const { reqID } = req.params;
   let sql = "DELETE FROM tutoring_requests WHERE Request_ID = ?";
   try {
-    await QueryDB.QueryDatbaseRow(sql, reqID);
+    await QueryDB.QueryDatabaseRow(sql, reqID);
   } catch (err) {
     console.log(err);
     return next(err);
@@ -119,17 +125,17 @@ const cancelRequest = async (req, res, next) => {
 };
 
 const newRequest = async (req, res, next) => {
-  const { userID, time, date, subject_ID, location, topics } = req.body;
+  const { user_id, time, date, subject_id, location, topics } = req.body;
 
   const newRequest = new Request(
-    userID,
+    user_id,
     time,
-    date,
-    subject_ID,
+    date.split("T")[0],
+    subject_id,
     location,
     topics
   );
-
+  console.log(newRequest);
   let sql = "INSERT INTO tutoring_requests SET ?";
   let query = db.query(sql, newRequest, (err, result) => {
     if (err) {
@@ -140,8 +146,25 @@ const newRequest = async (req, res, next) => {
   });
 };
 
+const EditRequest = async (req, res, next) => {
+  const { reqID } = req.params;
+  const { user_id, time, date, subject_id, location, topics } = req.body;
+
+  const sql = `UPDATE tutoring_requests SET Time="${time}", Date="${
+    date.split("T")[0]
+  }" WHERE Request_ID = ${reqID};`;
+
+  try {
+    await QueryDB.QueryDatabaseRow(sql, reqID);
+  } catch (err) {
+    next(err);
+  }
+  res.status(201).send();
+};
+
 exports.newRequest = newRequest;
 exports.AvailableTimes = AvailableTimes;
 exports.AvailableSubjects = AvailableSubjects;
 exports.SearchUserRequests = SearchUserRequests;
 exports.cancelRequest = cancelRequest;
+exports.EditRequest = EditRequest;

@@ -36,7 +36,7 @@ class Request {
     this.Time = time;
     this.Date = date;
     this.Subject_ID = subject_ID;
-    this.Location = location;
+    this.Location = "virtual";
     this.Topics = topics;
   }
 }

@@ -66,7 +66,7 @@ const Login = async (req, res, next) => {
     return next(error);
   }
   if (checkPassword) {
-    let token = CreateToken(user.User_ID, email);
+    let token = CreateToken(user[0].User_ID, email);
 
     res.status(201).json({
       userID: user[0].User_ID,

@@ -2,18 +2,22 @@ const jwt = require("jsonwebtoken");
 const HttpError = require("../http-error");
 
 const CheckAuth = (req, res, next) => {
+  console.log("in there doug");
   if (req.method === "OPTIONS") {
     //adjustment to enseure options requests (sent by the browser) are not blocked
     return next();
   }
   try {
+    console.log(req.headers);
     const token = req.headers.authorization.split(" ")[1]; //look at app.js for expected headers => Authorization: 'Bearer TOKEN'
     if (!token) {
       throw new Error("Authentication failed!");
     }
+    //const decodedToken = jwt.verify(token, process.env.JWT_KEY);
     const decodedToken = jwt.verify(token, process.env.JWT_KEY);
-    req.userData = { userId: decodedToken.userId }; //can always add data to request object
-
+    console.log(decodedToken);
+    req.userData = { userID: decodedToken.userID }; //can always add data to request object
+    console.log(req.userData);
     next();
   } catch (err) {
     const error = new HttpError("Autnentication failed!", 403);

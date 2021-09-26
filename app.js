@@ -30,7 +30,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/request/", requestRoutes);
+app.use("/requests/", requestRoutes);
 app.use("/subjects/", subjectsRoutes);
 app.use("/user/", userRoutes);
 
