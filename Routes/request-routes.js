@@ -16,5 +16,6 @@ router.post("/", requestController.newRequest);
 router.get("/user/:userID", requestController.SearchUserRequests);
 router.delete("/:reqID", requestController.cancelRequest);
 router.patch("/:reqID", requestController.EditRequest);
+router.post("/create-checkout-session", requestController.CheckOut)
 
 module.exports = router;

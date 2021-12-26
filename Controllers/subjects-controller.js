@@ -7,18 +7,10 @@ const getAllSubjects = async (req, res, next) => {
   let subjects;
   try {
     subjects = await QueryDB.QueryWholeDB(tableName);
-    // subjects = await QueryDB.JoinColumn(
-    //   table1,
-    //   column1,
-    //   table2,
-    //   column2,
-    //   appendColumn
-    // );
   } catch (err) {
-    console.log(err);
+
     return next(err);
   }
-  console.log(subjects);
   res.status(201).json(subjects);
 };
 
@@ -30,7 +22,7 @@ const getAllTopics = async (req, res, next) => {
   } catch (err) {
     return next(err);
   }
-  console.log(topics);
+
   res.status(201).json(topics);
 };
 

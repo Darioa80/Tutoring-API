@@ -45,12 +45,14 @@ const JoinColumn = (
   table2,
   column2,
   appendColumn,
-  id = ""
+  id = "",
+ 
 ) => {
   let sqlQuery = `SELECT ${table1}.*, ${table2}.${appendColumn} FROM ${table1} LEFT JOIN ${table2} ON ${table2}.${column2}=${table1}.${column1}`;
   if (id != "") {
     sqlQuery = sqlQuery + ` WHERE ${table1}.User_ID = ${id}`;
   }
+  sqlQuery = sqlQuery + ` AND ${table1}.Date >= '${new Date().toISOString().slice(0, 10)}'`;
   return new Promise((resolve, reject) => {
     db.query(sqlQuery, (err, result) => {
       if (err) {

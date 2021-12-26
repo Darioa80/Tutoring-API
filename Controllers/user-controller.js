@@ -32,7 +32,6 @@ const CreateToken = (userID, email) => {
       expiresIn: "1h",
     });
   } catch (err) {
-    console.log(err);
     const error = new HttpError(
       "Failed to sign up, please try again later.",
       500
@@ -50,18 +49,16 @@ const Login = async (req, res, next) => {
   try {
     user = await CheckForUser(email);
   } catch (err) {
-    console.log(err);
     next(err);
   }
   if (user.length == 0) {
     const error = new HttpError("User doesn't exist, please sign up", 422);
     return next(error);
   }
-  console.log("Logging in user: ", user);
+
   try {
     checkPassword = await bcrypt.compare(password, user[0].Password);
   } catch (err) {
-    console.log(err);
     const error = new HttpError("Something went wrong, try again later", 422);
     return next(error);
   }
@@ -119,7 +116,6 @@ const Register = async (req, res, next) => {
     insertResult = await AddUser(newUserInfo);
   } catch (err) {
     if (err) {
-      console.log(err);
       const error = new HttpError("A problem occurred, try again later", 500);
       return next(error);
     }

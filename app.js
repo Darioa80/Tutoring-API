@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const mysql = require("mysql2");
 const bodyParser = require("body-parser");
@@ -13,12 +14,12 @@ db.connect((err) => {
   if (err) {
     throw err;
   }
-  console.log("MySQL connected...");
+
 });
 
 const app = express();
-
-app.use(bodyParser.json());
+app.use(express.json());
+//app.use(bodyParser.json());
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*"); //opens up this domain to be access from other domains (CORS error)
@@ -42,13 +43,11 @@ app.use((req, res, next) => {
 
 app.use((error, req, res, next) => {
   //recognize this as an error handlding middleware function and will only be executed
-  console.log(error);
+
   if (res.headerSent) {
     //check if a header has already been sent in other middleware function
-    console.log("what's next?");
     return next(error);
   } //where errors are thrown in other middleware functions
-  console.log("should send custom error");
   res
     .status(error.code || 500)
     .json({ message: error.message || "An unknown error ocurred" });
@@ -56,5 +55,5 @@ app.use((error, req, res, next) => {
 });
 
 app.listen("8080", () => {
-  console.log("Hi, server 8080");
+
 });

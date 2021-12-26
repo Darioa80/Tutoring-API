@@ -1,7 +1,7 @@
 const HttpError = require("../http-error");
 const Request = require("../RequestSchema");
 const db = require("../util/connectMySQL");
-
+const stripe = require("../util/stripe");
 const moment = require("moment");
 
 const QueryDB = require("../util/QueryDatabase");
@@ -25,8 +25,9 @@ const SearchUserRequests = async (req, res, next) => {
       "Subject_Name",
       userID
     );
+
+    
   } catch (err) {
-    console.log(err);
     return next(err);
   }
 
@@ -36,7 +37,6 @@ const SearchUserRequests = async (req, res, next) => {
 const AvailableTimes = async (req, res, next) => {
   const { date } = req.body;
   const weekDayNum = moment(date).weekday();
-  console.log(weekDayNum);
   let parsed_date = date.split("T")[0];
   const initialTimes = initiateTimes(weekDayNum);
   const sqlQuery = "SELECT Time FROM tutoring_requests WHERE Date = ?";
@@ -44,14 +44,10 @@ const AvailableTimes = async (req, res, next) => {
   try {
     SQLData = await QueryDB.QueryDatabaseRow(sqlQuery, parsed_date);
   } catch (err) {
-    console.log(err);
-    /*const error = new HttpError(
-      "Something went wrong, please try again later",
-      500
-    );*/
+
     return next(error);
   }
-  console.log(SQLData);
+
   let resultingTimes = initialTimes.filter((time) => {
     for (let i = 0; i < SQLData.length; i++) {
       if (SQLData[i]["Time"] == time) {
@@ -71,7 +67,7 @@ const AvailableSubjects = async (req, res, next) => {
   try {
     SQLData = await QueryDB.QueryColumn(sqlQuery);
   } catch (err) {
-    console.log(err);
+
     /*const error = new HttpError(
       "Something went wrong, please try again later",
       500
@@ -118,13 +114,35 @@ const cancelRequest = async (req, res, next) => {
   try {
     await QueryDB.QueryDatabaseRow(sql, reqID);
   } catch (err) {
-    console.log(err);
+
     return next(err);
   }
   res.status(201).json({ message: "Tutoring appointment canceled" }).send();
 };
 
+const sendNewRequest = async (user_id, time, date, subject_id, location, topics) =>{
+
+  const newRequest = new Request(
+    user_id,
+    time,
+    date.split("T")[0],
+    subject_id,
+    location,
+    topics
+  );
+
+  let sql = "INSERT INTO tutoring_requests SET ?";
+  let query = db.query(sql, newRequest, (err, result) => {
+    if (err) {
+      throw err;
+    }
+
+    return result;
+  });
+}
+
 const newRequest = async (req, res, next) => {
+
   const { user_id, time, date, subject_id, location, topics } = req.body;
 
   const newRequest = new Request(
@@ -135,13 +153,13 @@ const newRequest = async (req, res, next) => {
     location,
     topics
   );
-  console.log(newRequest);
+
   let sql = "INSERT INTO tutoring_requests SET ?";
   let query = db.query(sql, newRequest, (err, result) => {
     if (err) {
       throw err;
     }
-    console.log(result);
+
     res.status(201).send();
   });
 };
@@ -162,9 +180,47 @@ const EditRequest = async (req, res, next) => {
   res.status(201).send();
 };
 
+const CheckOut = async(req, res, next) => {
+  const { subject_id, quantity } = req.body; [{id: "", quantity: ""}]
+  const { user_id, time, date, location, topics } = req.body;
+
+  const sqlQuery = "SELECT Subject_ID, Subject_Name, Rate FROM tutoring.subjects";
+  let SQLData;
+
+  try {
+    SQLData = await QueryDB.QueryColumn(sqlQuery);
+  } catch (err) {
+    return next(error);
+  }
+  const subject = SQLData[subject_id -1];
+  try{
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    mode: "payment",
+    line_items: [{
+      price_data: {
+        currency: "usd",
+        product_data:{
+          name: subject.Subject_Name
+        },
+        unit_amount: subject.Rate * 100
+      },
+      quantity: quantity
+    }]
+  , success_url: `${process.env.FRONT_END_URL}success`, cancel_url: `${process.env.FRONT_END_URL}requests`});
+  //const result = await sendNewRequest(user_id, time, date, subject_id, location, topics);
+  res.json({url: session.url, id: session.id}).send();
+ 
+  } catch(error){
+    next(error);
+  }
+
+};
+
 exports.newRequest = newRequest;
 exports.AvailableTimes = AvailableTimes;
 exports.AvailableSubjects = AvailableSubjects;
 exports.SearchUserRequests = SearchUserRequests;
 exports.cancelRequest = cancelRequest;
 exports.EditRequest = EditRequest;
+exports.CheckOut = CheckOut;
