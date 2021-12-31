@@ -1,0 +1,7 @@
+{
+    "env": {
+        "JWT_KEY": "Dario's_Super_Secret_Key",
+        "SQL_PASS": "Cyclops2006!",
+        "SQL_USER": "root"
+    }
+}
