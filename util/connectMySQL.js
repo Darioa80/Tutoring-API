@@ -10,7 +10,7 @@ const db = mysql.createConnection({
   database: process.env.SQL_DB,
 });
 
-export const closeConnection = (err) => {
+const closeConnection = (err) => {
   db.end((err)=>{
   if(err) {
     return console.log('error:' + err.message);
@@ -25,4 +25,5 @@ export const closeConnection = (err) => {
   });
 }
 
-module.exports = db;
+exports.db = db;
+exports.closeConnection = closeConnection;

@@ -7,12 +7,13 @@ const HttpError = require("./http-error");
 const userRoutes = require("./Routes/user-routes");
 const requestRoutes = require("./Routes/request-routes");
 const subjectsRoutes = require("./Routes/subject-routes");
-const db, {closeConnection} = require("./util/connectMySQL");
+const db = require("./util/connectMySQL");
+
 //Create connection
 
-db.connect((err) => {
+db.db.connect((err) => {
   if (err) {
-    closeConnection(err);
+    db.closeConnection(err);
   }
 
 });
@@ -55,5 +56,5 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(process.env.PORT || "8080", () => {
-
+ 
 });
