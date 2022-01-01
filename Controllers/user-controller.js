@@ -1,5 +1,5 @@
 const HttpError = require("../http-error");
-const db = require("../util/connectMySQL");
+const dbModule = require("../util/connectMySQL");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -8,7 +8,7 @@ const QueryDB = require("../util/QueryDatabase");
 const AddUser = (userObject) => {
   let addSQLQuery = "INSERT INTO users SET ?";
   return new Promise((resolve, reject) => {
-    db.query(addSQLQuery, userObject, (err, result) => {
+    dbModule.db.query(addSQLQuery, userObject, (err, result) => {
       if (err) {
         return reject(err);
       }

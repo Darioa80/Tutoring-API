@@ -1,11 +1,11 @@
-const db = require("../util/connectMySQL");
+const dbModule = require("../util/connectMySQL");
 
 //QueryDatabase => retreives the entire database
 const QueryWholeDB = (dbName) => {
   const sqlQuery = "SELECT * FROM ";
 
   return new Promise((resolve, reject) => {
-    db.query(sqlQuery + dbName, (err, result) => {
+    dbModule.db.query(sqlQuery + dbName, (err, result) => {
       if (err) {
         return reject(err);
       }
@@ -17,7 +17,7 @@ const QueryWholeDB = (dbName) => {
 
 const QueryDatabaseRow = (SQLQuery, columnValue) => {
   return new Promise((resolve, reject) => {
-    db.query(SQLQuery, [columnValue], (err, result) => {
+    dbModule.db.query(SQLQuery, [columnValue], (err, result) => {
       if (err) {
         return reject(err);
       }
@@ -29,7 +29,7 @@ const QueryDatabaseRow = (SQLQuery, columnValue) => {
 
 const QueryColumn = (SQLQuery) => {
   return new Promise((resolve, reject) => {
-    db.query(SQLQuery, (err, result) => {
+    dbModule.db.query(SQLQuery, (err, result) => {
       if (err) {
         return reject(err);
       }
@@ -54,7 +54,7 @@ const JoinColumn = (
   }
   sqlQuery = sqlQuery + ` AND ${table1}.Date >= '${new Date().toISOString().slice(0, 10)}'`;
   return new Promise((resolve, reject) => {
-    db.query(sqlQuery, (err, result) => {
+    dbModule.db.query(sqlQuery, (err, result) => {
       if (err) {
         return reject(err);
       }

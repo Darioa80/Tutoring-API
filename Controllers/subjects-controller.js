@@ -1,4 +1,4 @@
-const db = require("../util/connectMySQL");
+const dbModule = require("../util/connectMySQL");
 const QueryDB = require("../util/QueryDatabase");
 
 const getAllSubjects = async (req, res, next) => {

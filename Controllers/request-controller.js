@@ -1,6 +1,6 @@
 const HttpError = require("../http-error");
 const Request = require("../RequestSchema");
-const db = require("../util/connectMySQL");
+const dbModule = require("../util/connectMySQL");
 const stripe = require("../util/stripe");
 const moment = require("moment");
 
@@ -132,7 +132,7 @@ const sendNewRequest = async (user_id, time, date, subject_id, location, topics)
   );
 
   let sql = "INSERT INTO tutoring_requests SET ?";
-  let query = db.query(sql, newRequest, (err, result) => {
+  let query = dbModule.db.query(sql, newRequest, (err, result) => {
     if (err) {
       throw err;
     }
@@ -155,7 +155,7 @@ const newRequest = async (req, res, next) => {
   );
 
   let sql = "INSERT INTO tutoring_requests SET ?";
-  let query = db.query(sql, newRequest, (err, result) => {
+  let query = dbModule.db.query(sql, newRequest, (err, result) => {
     if (err) {
       throw err;
     }

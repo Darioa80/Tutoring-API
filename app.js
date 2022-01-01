@@ -7,13 +7,14 @@ const HttpError = require("./http-error");
 const userRoutes = require("./Routes/user-routes");
 const requestRoutes = require("./Routes/request-routes");
 const subjectsRoutes = require("./Routes/subject-routes");
-const db = require("./util/connectMySQL");
+const dbModule = require("./util/connectMySQL");
 
 //Create connection
-
-db.db.connect((err) => {
+console.log(dbModule);
+console.log("db:",dbModule.db);
+dbModule.db.connect((err) => {
   if (err) {
-    db.closeConnection(err);
+    dbModule.closeConnection(err);
   }
 
 });
