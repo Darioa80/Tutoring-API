@@ -48,13 +48,14 @@ const Login = async (req, res, next) => {
 
   try {
     user = await CheckForUser(email);
+    if (user.length == 0) {
+      const error = new HttpError("User doesn't exist, please sign up", 422);
+      return next(error);
+    }
   } catch (err) {
     next(err);
   }
-  if (user.length == 0) {
-    const error = new HttpError("User doesn't exist, please sign up", 422);
-    return next(error);
-  }
+
 
   try {
     checkPassword = await bcrypt.compare(password, user[0].Password);
