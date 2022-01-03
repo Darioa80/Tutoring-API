@@ -13,7 +13,7 @@ const SearchUserRequests = async (req, res, next) => {
   // const { userId: currentID } = req.userData; (will come back to this for authorization)
 
   const sqlQuery =
-    "SELECT Subject_ID, Time, Date, Location FROM tutoring_requests WHERE User_ID = ?";
+    `SELECT Subject_ID, Time, Date, Location FROM ${process.env.SQL_DB}.tutoring_requests WHERE User_ID = ?`;
   let appointments;
   try {
     // appointments = await QueryDB.QueryDatabaseRow(sqlQuery, userID);
@@ -39,7 +39,7 @@ const AvailableTimes = async (req, res, next) => {
   const weekDayNum = moment(date).weekday();
   let parsed_date = date.split("T")[0];
   const initialTimes = initiateTimes(weekDayNum);
-  const sqlQuery = "SELECT Time FROM tutoring_requests WHERE Date = ?";
+  const sqlQuery = `SELECT Time FROM ${process.env.SQL_DB}.tutoring_requests WHERE Date = ?`;
   let SQLData;
   try {
     SQLData = await QueryDB.QueryDatabaseRow(sqlQuery, parsed_date);
@@ -61,7 +61,7 @@ const AvailableTimes = async (req, res, next) => {
 };
 
 const AvailableSubjects = async (req, res, next) => {
-  const sqlQuery = "SELECT Subject_ID, Subject_Name, Rate FROM subjects";
+  const sqlQuery = `SELECT Subject_ID, Subject_Name, Rate FROM ${process.env.SQL_DB}.subjects`;
   let SQLData;
 
   try {
@@ -110,7 +110,7 @@ const initiateTimes = (weekDayNum) => {
 
 const cancelRequest = async (req, res, next) => {
   const { reqID } = req.params;
-  let sql = "DELETE FROM tutoring_requests WHERE Request_ID = ?";
+  let sql = `DELETE FROM ${process.env.SQL_DB}.tutoring_requests WHERE Request_ID = ?`;
   try {
     await QueryDB.QueryDatabaseRow(sql, reqID);
   } catch (err) {
@@ -131,7 +131,7 @@ const sendNewRequest = async (user_id, time, date, subject_id, location, topics)
     topics
   );
 
-  let sql = "INSERT INTO tutoring_requests SET ?";
+  let sql = `INSERT INTO ${process.env.SQL_DB}.tutoring_requests SET ?`;
   let query = dbModule.db.query(sql, newRequest, (err, result) => {
     if (err) {
       throw err;
@@ -154,7 +154,7 @@ const newRequest = async (req, res, next) => {
     topics
   );
 
-  let sql = "INSERT INTO tutoring_requests SET ?";
+  let sql = `INSERT INTO ${process.env.SQL_DB}.tutoring_requests SET ?`;
   let query = dbModule.db.query(sql, newRequest, (err, result) => {
     if (err) {
       throw err;
@@ -168,7 +168,7 @@ const EditRequest = async (req, res, next) => {
   const { reqID } = req.params;
   const { user_id, time, date, subject_id, location, topics } = req.body;
 
-  const sql = `UPDATE tutoring_requests SET Time="${time}", Date="${
+  const sql = `UPDATE ${process.env.SQL_DB}.tutoring_requests SET Time="${time}", Date="${
     date.split("T")[0]
   }" WHERE Request_ID = ${reqID};`;
 
@@ -184,7 +184,7 @@ const CheckOut = async(req, res, next) => {
   const { subject_id, quantity } = req.body; [{id: "", quantity: ""}]
   const { user_id, time, date, location, topics } = req.body;
 
-  const sqlQuery = "SELECT Subject_ID, Subject_Name, Rate FROM tutoring.subjects";
+  const sqlQuery = `SELECT Subject_ID, Subject_Name, Rate FROM ${process.env.SQL_DB}.subjects`;
   let SQLData;
 
   try {

@@ -48,11 +48,11 @@ const JoinColumn = (
   id = "",
  
 ) => {
-  let sqlQuery = `SELECT ${table1}.*, ${table2}.${appendColumn} FROM ${table1} LEFT JOIN ${table2} ON ${table2}.${column2}=${table1}.${column1}`;
+  let sqlQuery = `SELECT ${process.env.SQL_DB}.${table1}.*, ${process.env.SQL_DB}.${table2}.${appendColumn} FROM ${process.env.SQL_DB}.${table1} LEFT JOIN ${process.env.SQL_DB}.${table2} ON ${process.env.SQL_DB}.${table2}.${column2}=${process.env.SQL_DB}.${table1}.${column1}`;
   if (id != "") {
     sqlQuery = sqlQuery + ` WHERE ${table1}.User_ID = ${id}`;
   }
-  sqlQuery = sqlQuery + ` AND ${table1}.Date >= '${new Date().toISOString().slice(0, 10)}'`;
+  sqlQuery = sqlQuery + ` AND ${process.env.SQL_DB}.${table1}.Date >= '${new Date().toISOString().slice(0, 10)}'`;
   return new Promise((resolve, reject) => {
     dbModule.db.query(sqlQuery, (err, result) => {
       if (err) {

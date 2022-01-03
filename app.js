@@ -10,10 +10,11 @@ const subjectsRoutes = require("./Routes/subject-routes");
 const dbModule = require("./util/connectMySQL");
 
 //Create connection
-console.log(dbModule);
-console.log("db:",dbModule.db);
 dbModule.db.connect((err) => {
+  console.log('db connect in app.js');
+
   if (err) {
+    console.log("error");
     dbModule.closeConnection(err);
   }
 

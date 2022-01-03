@@ -1,9 +1,9 @@
 {
     "env": {
         "JWT_KEY": "Dario's_Super_Secret_Key",
-        "SQL_PASS": "Cyclops2006!",
-        "SQL_USER": "root",
-        "SQL_HOST": "localhost",
-        "SQL_DB": "tutoring"
+        "SQL_PASS": "f1a745ca",
+        "SQL_USER": "bae387d394afcf",
+        "SQL_HOST": "us-cdbr-east-05.cleardb.net",
+        "SQL_DB": "heroku_f20bb61fc180378"
     }
 }

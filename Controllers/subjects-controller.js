@@ -2,7 +2,7 @@ const dbModule = require("../util/connectMySQL");
 const QueryDB = require("../util/QueryDatabase");
 
 const getAllSubjects = async (req, res, next) => {
-  const tableName = "tutoring.subjects";
+  const tableName = `${process.env.SQL_DB}.subjects`;
 
   let subjects;
   try {
@@ -15,7 +15,7 @@ const getAllSubjects = async (req, res, next) => {
 };
 
 const getAllTopics = async (req, res, next) => {
-  const tableName = "tutoring.topics";
+  const tableName = `${process.env.SQL_DB}.topics`;
   let topics;
   try {
     topics = await QueryDB.QueryWholeDB(tableName);
