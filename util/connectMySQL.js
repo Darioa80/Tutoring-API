@@ -11,7 +11,6 @@ let db = mysql.createConnection({
   database: process.env.SQL_DB,
 });
 
-console.log(db);
 
 const closeConnection = (err) => {
   db.end((err)=>{

@@ -25,12 +25,14 @@ app.use(express.json());
 //app.use(bodyParser.json());
 
 app.use((req, res, next) => {
+
   res.setHeader("Access-Control-Allow-Origin", "*"); //opens up this domain to be access from other domains (CORS error)
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
   );
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE"); //Which Http methods to be usedfrom the front end
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS"); //Which Http methods to be usedfrom the front end
+  
   next();
 });
 
