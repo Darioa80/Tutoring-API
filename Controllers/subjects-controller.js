@@ -9,6 +9,7 @@ const getAllSubjects = async (req, res, next) => {
     subjects = await QueryDB.QueryWholeDB(tableName);
   } catch (err) {
     console.log(err);
+    dbModule.closeConnection(err);
     return next(err);
   }
   res.status(201).json(subjects);

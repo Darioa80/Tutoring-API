@@ -7,6 +7,7 @@ const QueryWholeDB = (dbName) => {
   return new Promise((resolve, reject) => {
     dbModule.db.query(sqlQuery + dbName, (err, result) => {
       if (err) {
+        dbModule.closeConnection(err);
         return reject(err);
       }
 
