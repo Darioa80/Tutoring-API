@@ -2,6 +2,12 @@ const dbModule = require("../util/connectMySQL");
 
 //QueryDatabase => retreives the entire database
 const QueryWholeDB = (dbName) => {
+  dbModule.db.connect((err)=>{
+    if(err){
+      dbModule.closeConnection(err);
+      return err;
+    }
+});
   const sqlQuery = "SELECT * FROM ";
 
   return new Promise((resolve, reject) => {
@@ -17,9 +23,16 @@ const QueryWholeDB = (dbName) => {
 };
 
 const QueryDatabaseRow = (SQLQuery, columnValue) => {
+  dbModule.db.connect((err)=>{
+    if(err){
+      dbModule.closeConnection(err);
+      return err;
+    }
+});
   return new Promise((resolve, reject) => {
     dbModule.db.query(SQLQuery, [columnValue], (err, result) => {
       if (err) {
+        dbModule.closeConnection(err);
         return reject(err);
       }
       // console.log("query result: ", result);
@@ -29,9 +42,15 @@ const QueryDatabaseRow = (SQLQuery, columnValue) => {
 };
 
 const QueryColumn = (SQLQuery) => {
+  dbModule.db.connect((err)=>{
+    if(err){
+      return next(err);
+    }
+});
   return new Promise((resolve, reject) => {
     dbModule.db.query(SQLQuery, (err, result) => {
       if (err) {
+        dbModule.closeConnection(err);
         return reject(err);
       }
       // console.log("query result: ", result);
@@ -49,6 +68,11 @@ const JoinColumn = (
   id = "",
  
 ) => {
+  dbModule.db.connect((err)=>{
+    if(err){
+      return next(err);
+    }
+});
   let sqlQuery = `SELECT ${process.env.SQL_DB}.${table1}.*, ${process.env.SQL_DB}.${table2}.${appendColumn} FROM ${process.env.SQL_DB}.${table1} LEFT JOIN ${process.env.SQL_DB}.${table2} ON ${process.env.SQL_DB}.${table2}.${column2}=${process.env.SQL_DB}.${table1}.${column1}`;
   if (id != "") {
     sqlQuery = sqlQuery + ` WHERE ${table1}.User_ID = ${id}`;
@@ -57,6 +81,7 @@ const JoinColumn = (
   return new Promise((resolve, reject) => {
     dbModule.db.query(sqlQuery, (err, result) => {
       if (err) {
+        dbModule.closeConnection();
         return reject(err);
       }
       // console.log("query result: ", result);

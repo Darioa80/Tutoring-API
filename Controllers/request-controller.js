@@ -9,7 +9,11 @@ const QueryDB = require("../util/QueryDatabase");
 const SearchUserRequests = async (req, res, next) => {
   //needs to be authorized and checked that the userID matches the logged in user
   const { userID } = req.params;
-
+  dbModule.db.connect((err)=>{
+    if(err){
+      return next(err);
+    }
+});
   // const { userId: currentID } = req.userData; (will come back to this for authorization)
 
   const sqlQuery =
@@ -28,6 +32,7 @@ const SearchUserRequests = async (req, res, next) => {
 
     
   } catch (err) {
+    dbModule.closeConnection(err);
     return next(err);
   }
 
@@ -153,11 +158,17 @@ const newRequest = async (req, res, next) => {
     location,
     topics
   );
+  dbModule.db.connect((err)=>{
+    if(err){
+      return next(err);
+    }
+});
 
   let sql = `INSERT INTO ${process.env.SQL_DB}.tutoring_requests SET ?`;
   let query = dbModule.db.query(sql, newRequest, (err, result) => {
     if (err) {
-      throw err;
+      dbModule.closeConnection();
+      return next(err);
     }
 
     res.status(201).send();

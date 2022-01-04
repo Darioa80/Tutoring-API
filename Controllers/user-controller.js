@@ -6,10 +6,16 @@ const jwt = require("jsonwebtoken");
 const QueryDB = require("../util/QueryDatabase");
 
 const AddUser = (userObject) => {
+  dbModule.db.connect((err)=>{
+      if(err){
+        return next(err);
+      }
+  });
   let addSQLQuery = `INSERT INTO ${process.env.SQL_DB}.users SET ?`;
   return new Promise((resolve, reject) => {
     dbModule.db.query(addSQLQuery, userObject, (err, result) => {
       if (err) {
+        dbModule.closeConnection(err);
         return reject(err);
       }
       return resolve(result);
@@ -18,11 +24,17 @@ const AddUser = (userObject) => {
 };
 
 const CheckForUser = async (email) => {
+  dbModule.db.connect((err)=>{
+    if(err){
+      return next(err);
+    }
+});
   let userSearchQuery = `SELECT * FROM ${process.env.SQL_DB}.users WHERE Email = ?`;
   try{
     let user = await QueryDB.QueryDatabaseRow(userSearchQuery, email);
     return user;
 } catch(err){
+  dbModule.closeConnection();
     return next(err);
   }
 
