@@ -19,10 +19,13 @@ const AddUser = (userObject) => {
 
 const CheckForUser = async (email) => {
   let userSearchQuery = `SELECT * FROM ${process.env.SQL_DB}.users WHERE Email = ?`;
+  try{
+    let user = await QueryDB.QueryDatabaseRow(userSearchQuery, email);
+    return user;
+} catch(err){
+    return next(err);
+  }
 
-  let user = await QueryDB.QueryDatabaseRow(userSearchQuery, email);
-
-  return user;
 };
 
 const CreateToken = (userID, email) => {
