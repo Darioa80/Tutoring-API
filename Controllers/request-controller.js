@@ -3,24 +3,18 @@ const Request = require("../RequestSchema");
 const dbModule = require("../util/connectMySQL");
 const stripe = require("../util/stripe");
 const moment = require("moment");
+const db = require("../util/connectMySQL");
+
 
 const QueryDB = require("../util/QueryDatabase");
 
 const SearchUserRequests = async (req, res, next) => {
   //needs to be authorized and checked that the userID matches the logged in user
   const { userID } = req.params;
-  dbModule.db.connect((err)=>{
-    if(err){
-      return next(err);
-    }
-});
-  // const { userId: currentID } = req.userData; (will come back to this for authorization)
-
   const sqlQuery =
     `SELECT Subject_ID, Time, Date, Location FROM ${process.env.SQL_DB}.tutoring_requests WHERE User_ID = ?`;
   let appointments;
   try {
-    // appointments = await QueryDB.QueryDatabaseRow(sqlQuery, userID);
     appointments = await QueryDB.JoinColumn(
       "tutoring_requests",
       "Subject_ID",
@@ -32,7 +26,7 @@ const SearchUserRequests = async (req, res, next) => {
 
     
   } catch (err) {
-    dbModule.closeConnection(err);
+
     return next(err);
   }
 
@@ -72,11 +66,6 @@ const AvailableSubjects = async (req, res, next) => {
   try {
     SQLData = await QueryDB.QueryColumn(sqlQuery);
   } catch (err) {
-
-    /*const error = new HttpError(
-      "Something went wrong, please try again later",
-      500
-    );*/
     return next(error);
   }
   let returnNameObject = {};
@@ -137,13 +126,15 @@ const sendNewRequest = async (user_id, time, date, subject_id, location, topics)
   );
 
   let sql = `INSERT INTO ${process.env.SQL_DB}.tutoring_requests SET ?`;
-  let query = dbModule.db.query(sql, newRequest, (err, result) => {
-    if (err) {
-      throw err;
-    }
-
-    return result;
-  });
+  db.pool.getConnection(function(err, connection){
+    connection.query(sql, newRequest, (err, result) => {
+      if (err) {
+        throw err;
+      }
+      connection.release();
+      return result;
+    });
+  })
 }
 
 const newRequest = async (req, res, next) => {
@@ -158,21 +149,17 @@ const newRequest = async (req, res, next) => {
     location,
     topics
   );
-  dbModule.db.connect((err)=>{
-    if(err){
-      return next(err);
-    }
-});
 
   let sql = `INSERT INTO ${process.env.SQL_DB}.tutoring_requests SET ?`;
-  let query = dbModule.db.query(sql, newRequest, (err, result) => {
-    if (err) {
-      dbModule.closeConnection();
-      return next(err);
-    }
-
-    res.status(201).send();
-  });
+  db.pool.getConnection(function(err, connection){
+    connection.query(sql, newRequest, (err, result) => {
+      if (err) {
+        return next(err);
+      }
+      connection.release();
+      res.status(201).send();
+    });
+  })
 };
 
 const EditRequest = async (req, res, next) => {

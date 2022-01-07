@@ -2,39 +2,34 @@ const HttpError = require("../http-error");
 const dbModule = require("../util/connectMySQL");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const db = require("../util/connectMySQL");
+
 
 const QueryDB = require("../util/QueryDatabase");
 
 const AddUser = (userObject) => {
-  dbModule.db.connect((err)=>{
-      if(err){
-        return next(err);
-      }
-  });
   let addSQLQuery = `INSERT INTO ${process.env.SQL_DB}.users SET ?`;
   return new Promise((resolve, reject) => {
-    dbModule.db.query(addSQLQuery, userObject, (err, result) => {
-      if (err) {
-        dbModule.closeConnection(err);
-        return reject(err);
-      }
-      return resolve(result);
+    db.pool.getConnection(function(err,connection){
+      connection.query(addSQLQuery, userObject, (err, result) => {
+        if (err) {
+
+          connection.release();
+          return reject(err);
+        }
+        connection.release();
+        return resolve(result);
+      });
     });
   });
 };
 
 const CheckForUser = async (email) => {
-  dbModule.db.connect((err)=>{
-    if(err){
-      return next(err);
-    }
-});
   let userSearchQuery = `SELECT * FROM ${process.env.SQL_DB}.users WHERE Email = ?`;
   try{
     let user = await QueryDB.QueryDatabaseRow(userSearchQuery, email);
     return user;
 } catch(err){
-  dbModule.closeConnection();
     return next(err);
   }
 
@@ -70,7 +65,6 @@ const Login = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-
 
   try {
     checkPassword = await bcrypt.compare(password, user[0].Password);

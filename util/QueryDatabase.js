@@ -1,61 +1,70 @@
-const dbModule = require("../util/connectMySQL");
+const db = require("../util/connectMySQL");
 
 //QueryDatabase => retreives the entire database
 const QueryWholeDB = (dbName) => {
-  dbModule.db.connect((err)=>{
-    if(err){
-      dbModule.closeConnection(err);
-      return err;
-    }
-});
+//   dbModule.db.connect((err)=>{
+//     if(err){
+//       dbModule.closeConnection(err);
+//       return err;
+//     }
+// });
+
   const sqlQuery = "SELECT * FROM ";
 
   return new Promise((resolve, reject) => {
-    dbModule.db.query(sqlQuery + dbName, (err, result) => {
-      if (err) {
-        dbModule.closeConnection(err);
-        return reject(err);
-      }
+    // dbModule.db.query(sqlQuery + dbName, (err, result) => {
+    //   if (err) {
+    //     dbModule.closeConnection(err);
+    //     return reject(err);
+    //   }
 
-      return resolve(result);
-    });
+    //   return resolve(result);
+    // });
+
+    db.pool.getConnection(function(err, connection){
+      connection.query(sqlQuery + dbName, (err, result) => {
+          if (err) {
+            connection.release();
+            return reject(err);
+          }
+          connection.release();
+          return resolve(result);
+          
+        });
+    })
+
   });
 };
 
 const QueryDatabaseRow = (SQLQuery, columnValue) => {
-  dbModule.db.connect((err)=>{
-    if(err){
-      dbModule.closeConnection(err);
-      return err;
-    }
-});
   return new Promise((resolve, reject) => {
-    dbModule.db.query(SQLQuery, [columnValue], (err, result) => {
-      if (err) {
-        dbModule.closeConnection(err);
-        return reject(err);
-      }
-      // console.log("query result: ", result);
-      return resolve(result);
+  db.pool.getConnection(function(err, connection){
+    connection.query(SQLQuery, [columnValue], (err, result) => {
+          if (err) {
+            connection.release();
+            return reject(err);
+          }  
+          connection.release();
+          return resolve(result);
+        });
+      })
+  
     });
-  });
-};
+  };
 
 const QueryColumn = (SQLQuery) => {
-  dbModule.db.connect((err)=>{
-    if(err){
-      return next(err);
-    }
-});
   return new Promise((resolve, reject) => {
-    dbModule.db.query(SQLQuery, (err, result) => {
-      if (err) {
-        dbModule.closeConnection(err);
-        return reject(err);
-      }
-      // console.log("query result: ", result);
-      return resolve(result);
-    });
+    db.pool.getConnection(function(err, connection){
+      connection.query(SQLQuery, (err, result) => {
+        if (err) {
+
+          return reject(err);
+        }
+        // console.log("query result: ", result);
+        connection.release();
+        return resolve(result);
+      });
+    })
   });
 };
 
@@ -68,25 +77,22 @@ const JoinColumn = (
   id = "",
  
 ) => {
-  dbModule.db.connect((err)=>{
-    if(err){
-      return next(err);
-    }
-});
   let sqlQuery = `SELECT ${process.env.SQL_DB}.${table1}.*, ${process.env.SQL_DB}.${table2}.${appendColumn} FROM ${process.env.SQL_DB}.${table1} LEFT JOIN ${process.env.SQL_DB}.${table2} ON ${process.env.SQL_DB}.${table2}.${column2}=${process.env.SQL_DB}.${table1}.${column1}`;
   if (id != "") {
     sqlQuery = sqlQuery + ` WHERE ${table1}.User_ID = ${id}`;
   }
   sqlQuery = sqlQuery + ` AND ${process.env.SQL_DB}.${table1}.Date >= '${new Date().toISOString().slice(0, 10)}'`;
   return new Promise((resolve, reject) => {
-    dbModule.db.query(sqlQuery, (err, result) => {
-      if (err) {
-        dbModule.closeConnection();
-        return reject(err);
-      }
-      // console.log("query result: ", result);
-      return resolve(result);
-    });
+    db.pool.getConnection(function(err, connection){
+      connection.query(sqlQuery, (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        // console.log("query result: ", result);
+        connection.release();
+        return resolve(result);
+      });
+    })
   });
 };
 

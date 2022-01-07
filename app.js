@@ -7,18 +7,9 @@ const HttpError = require("./http-error");
 const userRoutes = require("./Routes/user-routes");
 const requestRoutes = require("./Routes/request-routes");
 const subjectsRoutes = require("./Routes/subject-routes");
-const dbModule = require("./util/connectMySQL");
 
-//Create connection
-dbModule.db.connect((err) => {
-  console.log('db connect in app.js');
 
-  if (err) {
-    console.log("error");
-    dbModule.closeConnection(err);
-  }
 
-});
 
 const app = express();
 app.use(express.json());
