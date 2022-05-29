@@ -7,12 +7,13 @@ const db = require("../util/connectMySQL");
 
 
 const QueryDB = require("../util/QueryDatabase");
+const { makeCalendarEvent } = require("../util/google-calendar");
 
 const SearchUserRequests = async (req, res, next) => {
   //needs to be authorized and checked that the userID matches the logged in user
   const { userID } = req.params;
   const sqlQuery =
-    `SELECT Subject_ID, Time, Date, Location FROM ${process.env.SQL_DB}.tutoring_requests WHERE User_ID = ?`;
+    `SELECT Subject_ID, Time, Date, Location FROM ${process.env.SQL_DB}.tutoring_requests WHERE User_ID = ? AND Canceled = null`;
   let appointments;
   try {
     appointments = await QueryDB.JoinColumn(
@@ -23,8 +24,7 @@ const SearchUserRequests = async (req, res, next) => {
       "Subject_Name",
       userID
     );
-
-    
+    console.log(appointments);
   } catch (err) {
 
     return next(err);
@@ -104,7 +104,8 @@ const initiateTimes = (weekDayNum) => {
 
 const cancelRequest = async (req, res, next) => {
   const { reqID } = req.params;
-  let sql = `DELETE FROM ${process.env.SQL_DB}.tutoring_requests WHERE Request_ID = ?`;
+  let sql = `UPDATE ${process.env.SQL_DB}.tutoring_requests SET Canceled = '${new Date().toISOString().slice(0, 10)}' WHERE Request_ID = ?`;
+  console.log(sql);
   try {
     await QueryDB.QueryDatabaseRow(sql, reqID);
   } catch (err) {
@@ -179,9 +180,8 @@ const EditRequest = async (req, res, next) => {
 };
 
 const CheckOut = async(req, res, next) => {
-  const { subject_id, quantity } = req.body; [{id: "", quantity: ""}]
-  const { user_id, time, date, location, topics } = req.body;
-
+  const { subject_id, quantity } = req.body; 
+  const { user_id, time, date, location, topics, email } = req.body;
   const sqlQuery = `SELECT Subject_ID, Subject_Name, Rate FROM ${process.env.SQL_DB}.subjects`;
   let SQLData;
 
@@ -191,9 +191,11 @@ const CheckOut = async(req, res, next) => {
     return next(error);
   }
   const subject = SQLData[subject_id -1];
+  makeCalendarEvent( date, time, location, subject.Subject_Name, email);
   try{
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
+    metadata: { user_id, time, date, location, topics, subject_name: subject.Subject_Name, email },
     mode: "payment",
     line_items: [{
       price_data: {
@@ -215,6 +217,75 @@ const CheckOut = async(req, res, next) => {
 
 };
 
+const getUsersAndRequest = async(req, res, next) => {
+  const sql = `Select * from ${process.env.SQL_DB}.users where User_ID = ?`
+  const user = await QueryDB.QueryDatabaseRow(sql, req.userData.userID);
+  if(user[0].admin !== 'admin'){
+    return new Error("Not Authorized");
+  }
+  else{
+    try{
+      const data = await QueryDB.UsersAndRequests();
+       res.send(data);
+    } catch(error){
+      console.log("error");
+      next(error)
+    }
+
+
+  }
+
+}
+
+const handleWebhook = async(req,res,next) => {
+  const signature = req.headers['stripe-signature'];
+  const endPointSecret = process.env.STRIPE_WB_HOOK;
+
+  const subjectMap = {
+    1:	"Algebra",
+2:	"Geometry",
+3:	"College Algebra",
+4:	"Pre-Calc",
+5:	"Calculus I",
+6:	"Calculus II",
+7:	"Physics I - Mechanics",
+8:	"Statics",
+9:	"Physics II - Electricity and Magnetism",
+10:	"Trigonometry"
+  };
+ 
+  let event;
+  try{
+    event = stripe.webhooks.constructEvent(req.rawBody, signature, endPointSecret);
+
+  }
+  catch(err){
+    let error = new HttpError(`Couldn't authenticate event`)
+
+  }
+
+  switch(event.type){
+    case 'checkout.session.completed':
+    console.log(req.body.data.object);
+    console.log(req.body.data.object.metadata);
+    if(req.body.data.object.metadata !== null){
+      const reqInfo = req.body.data.object.metadata;
+      await sendNewRequest(reqInfo.user_id, reqInfo.time, reqInfo.date, reqInfo.subject_id, reqInfo.location, reqInfo.topics );
+    }
+    //Time: 13:00:00
+    //Date: 2022-03-20
+
+    makeCalendarEvent(reqInfo.date, reqInfo.time, reqInfo.location, subjectMap[reqInfo.subject_id], reqInfo.email );
+
+
+    //Make Google Calendar event
+    //How do I get request data here? Meta data from session
+
+  }
+
+}
+
+
 exports.newRequest = newRequest;
 exports.AvailableTimes = AvailableTimes;
 exports.AvailableSubjects = AvailableSubjects;
@@ -222,3 +293,5 @@ exports.SearchUserRequests = SearchUserRequests;
 exports.cancelRequest = cancelRequest;
 exports.EditRequest = EditRequest;
 exports.CheckOut = CheckOut;
+exports.getUsersAndRequest = getUsersAndRequest;
+exports.handleWebhook = handleWebhook

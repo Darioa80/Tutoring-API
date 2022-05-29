@@ -12,11 +12,23 @@ const subjectsRoutes = require("./Routes/subject-routes");
 
 
 const app = express();
-app.use(express.json());
+
+const rawBodySaver =  (req, res, buf, encoding) =>{
+  if (buf && buf.length) {
+    req.rawBody = buf.toString(encoding || 'utf8');
+  }
+}
+
+const options = {
+  verify: rawBodySaver
+};
+
+
+app.use(express.json(options));
 //app.use(bodyParser.json());
 
 app.use((req, res, next) => {
-
+  // console.log(req.rawBody);
   res.setHeader("Access-Control-Allow-Origin", "*"); //opens up this domain to be access from other domains (CORS error)
   res.setHeader(
     "Access-Control-Allow-Headers",
@@ -39,7 +51,6 @@ app.use((req, res, next) => {
 
 app.use((error, req, res, next) => {
   //recognize this as an error handlding middleware function and will only be executed
-
   if (res.headerSent) {
     //check if a header has already been sent in other middleware function
     return next(error);
@@ -51,5 +62,5 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(process.env.PORT || "8080", () => {
- 
+ console.log("ready");
 });

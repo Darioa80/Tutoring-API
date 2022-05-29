@@ -3,6 +3,7 @@ const dbModule = require("../util/connectMySQL");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const db = require("../util/connectMySQL");
+const stripe = require("../util/stripe");
 
 
 const QueryDB = require("../util/QueryDatabase");
@@ -51,6 +52,25 @@ const CreateToken = (userID, email) => {
   return token;
 };
 
+const createAdmin = async (req, res, next) =>{
+  const {email} = req.body;
+  console.log(email);
+  //Should check if the user sendign the request has an admin role
+  user = await CheckForUser(email);
+  console.log(user[0])
+  if (user.length == 0) {
+    const error = new HttpError("User doesn't exist, please sign up", 422);
+    return next(error);
+  }
+  try{
+    await QueryDB.UpdateColumn('users', 'admin', 'admin', 'User_ID', user[0].User_ID);
+  }
+  catch(err){
+    return next(err);
+  }
+ res.status(201).send();
+}
+
 const Login = async (req, res, next) => {
   const { email, password } = req.body;
   let user;
@@ -80,6 +100,7 @@ const Login = async (req, res, next) => {
       firstName: user[0].First_Name,
       email: user[0].Email,
       token,
+      admin: user[0].admin
     });
   } else {
     const error = new HttpError("Incorrect Password, please try again", 403);
@@ -87,11 +108,16 @@ const Login = async (req, res, next) => {
   }
 };
 
+const CreateStripeId = async (email, name) => {
+ const customer = await stripe.customers.create({email, name});
+  return customer.id;
+}
+
 const Register = async (req, res, next) => {
   const { firstName, lastName, email, phoneNumber, password } = req.body;
   let user;
   let hashedPasword;
-
+  let name = `${firstName} ${lastName}`;
   user = await CheckForUser(email);
 
   if (user.length > 0) {
@@ -111,13 +137,14 @@ const Register = async (req, res, next) => {
     );
     return next(error);
   }
-
+  newUserStripeId = CreateStripeId(email, name);
   const newUserInfo = {
     First_Name: firstName,
     Last_Name: lastName,
     Email: email,
     Phone_Number: phoneNumber,
     Password: hashedPasword,
+    Stripe_ID: newUserStripeId
   };
 
   let insertResult;
@@ -140,3 +167,4 @@ const Register = async (req, res, next) => {
 
 exports.Register = Register;
 exports.Login = Login;
+exports.createAdmin = createAdmin;

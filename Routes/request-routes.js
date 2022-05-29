@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post("/times", requestController.AvailableTimes);
 router.get("/subjects", requestController.AvailableSubjects);
-
+router.post('/stripe-webhook',  requestController.handleWebhook)
 //authenticated routes
 router.use(CheckAuth.CheckAuth);
 
@@ -17,5 +17,6 @@ router.get("/user/:userID", requestController.SearchUserRequests);
 router.delete("/:reqID", requestController.cancelRequest);
 router.patch("/:reqID", requestController.EditRequest);
 router.post("/create-checkout-session", requestController.CheckOut)
+router.get("/all", requestController.getUsersAndRequest);
 
 module.exports = router;
