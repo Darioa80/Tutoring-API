@@ -1,9 +1,14 @@
 {
     "env": {
         "JWT_KEY": "Dario's_Super_Secret_Key",
-        "SQL_PASS": "f1a745ca",
-        "SQL_USER": "bae387d394afcf",
-        "SQL_HOST": "us-cdbr-east-05.cleardb.net",
-        "SQL_DB": "heroku_f20bb61fc180378"
+        "SQL_PASS": "Cyclops2006!",
+        "SQL_USER": "root",
+        "SQL_HOST": "localhost",
+        "SQL_DB": "tutoring",
+        "STRIPE_PRIVATE_KEY": "sk_test_51Jx1EYKl373DfWr8ga6Vd2EPjJuPs8sDJXHxLNLp54su1DIkpaVgrE7WZwrHHAot6WqeuuFpOcY1uAx9hOu28K0O00XbaAjIde",
+        "STRIPE_WB_HOOK": "whsec_ed3a76ac3d3d2f5a1ab935b95cc24269197f3ac12ab4bed44b367f07ef13efa3",
+        "GOOGLE_CLIENT_ID": "932758987-dvtu6eqslfeojemj8r2b14uvdq290dno.apps.googleusercontent.com",
+        "GOOGLE_CLIENT_SECRET": "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",
+        "GOOGLE_CAL_REFRESH_TOKEN": "1//04OqbUrZ02XRgCgYIARAAGAQSNwF-L9IrcOC7b1DwOfE-JgoyMpPda8WOpTMPglkuXLjTLrqsepdnMSBLmeO01ilANnypqTymvRA"
     }
 }
