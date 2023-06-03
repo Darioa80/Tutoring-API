@@ -4,9 +4,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const db = require("../util/connectMySQL");
 const stripe = require("../util/stripe");
-
-
 const QueryDB = require("../util/QueryDatabase");
+const { sendConfirmationMail  } = require("../util/mail");
 
 const AddUser = (userObject) => {
   let addSQLQuery = `INSERT INTO ${process.env.SQL_DB}.users SET ?`;
@@ -47,7 +46,7 @@ const CreateToken = (userID, email) => {
       "Failed to sign up, please try again later.",
       500
     );
-    return next(error);
+    throw error;
   }
   return token;
 };
@@ -110,6 +109,7 @@ const Login = async (req, res, next) => {
 
 const CreateStripeId = async (email, name) => {
  const customer = await stripe.customers.create({email, name});
+ console.log(customer.id);
   return customer.id;
 }
 
@@ -137,7 +137,7 @@ const Register = async (req, res, next) => {
     );
     return next(error);
   }
-  newUserStripeId = CreateStripeId(email, name);
+  newUserStripeId = await CreateStripeId(email, name);
   const newUserInfo = {
     First_Name: firstName,
     Last_Name: lastName,
@@ -158,13 +158,74 @@ const Register = async (req, res, next) => {
     }
   }
 
-  let token = CreateToken(insertResult.insertId, email);
-
+  let token = CreateToken(Math.floor(Math.random() * 100), email);
+  let error = await storeConfirmationToken(token, insertResult.insertId);
+  if(error.code != 0){
+    return next(error);
+  }
+  const link = `${process.env.FRONT_END_URL}/confirmation/${token}`
+  //send email
+  //sendConfirmationMail(email, link);
+  sendConfirmationMail(email, link);
+  console.log(link);
   res
     .status(201)
     .json({ userID: insertResult.insertId, firstName, email, token });
 };
 
+const testEmail = async (req, res, next) =>{
+  const {body} = req;
+  console.log(body);
+  let sql = `SELECT Confirmation_Token from ${process.env.SQL_DB}.users WHERE Email = ?`;
+  token = await QueryDB.QueryDatabaseRow(sql, body.email );
+
+  console.log(token[0].Confirmation_Token);
+  const link = `${process.env.FRONT_END_URL}confirmation/${token[0].Confirmation_Token}`;
+  sendConfirmationMail(body.email, link);
+
+
+
+
+}
+
+const storeConfirmationToken = async (token, userID) => {
+  console.log(`Registering new user ${userID}: `, token);
+  let error = new HttpError("", 0);
+  try{
+
+    await QueryDB.UpdateColumn("users", "Confirmation_Token", token, "User_ID", userID);
+  } catch(e){
+    error = new HttpError(
+      "could not create user, please try again.",
+      500
+    );
+    
+  }
+  console.log(error);
+  return error;
+  
+}
+
+const AuthenticateAccount = async (req, res, next) => {
+  const { token } = req.params;
+  console.log(token);
+  try{
+    QueryDB.UpdateColumn(`${process.env.SQL_DB}.users`, "Confirmation", 1, "Confirmation_Token", token );
+
+  }catch(e){
+    error = new HttpError(
+      "could not authenticate account, please try again later.",
+      500
+    );
+    next(error);
+  }
+  
+
+}
+
+
 exports.Register = Register;
+exports.AuthenticateAccount = AuthenticateAccount;
 exports.Login = Login;
 exports.createAdmin = createAdmin;
+exports.testEmail = testEmail;

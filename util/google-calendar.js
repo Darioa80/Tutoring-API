@@ -8,7 +8,7 @@ const {OAuth2} = google.auth;
 
 const oAuth2Client = new OAuth2(`${process.env.GOOGLE_CLIENT_ID}`, `${process.env.GOOGLE_CLIENT_SECRET}`);
 
-console.log(process.env.GOOGLE_CLIENT_ID);
+console.log(process.env.GOOGLE_CAL_REFRESH_TOKEN);
 
 oAuth2Client.setCredentials({refresh_token: `${process.env.GOOGLE_CAL_REFRESH_TOKEN}`});
 
@@ -61,3 +61,4 @@ const makeCalendarEvent = async( date, time, location, subject, email) => {
 }
 
 exports.makeCalendarEvent = makeCalendarEvent;
+exports.oAuth2Client = oAuth2Client
